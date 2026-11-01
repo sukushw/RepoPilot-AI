@@ -8,6 +8,15 @@ Unlike a generic "paste your stack trace" chatbot, CrashFix AI reads the real
 file at the crashing line (and any related layouts/manifest it asks for) before
 answering.
 
+## 🎥 Demo
+
+Watch CrashFix AI in action:
+
+**▶️ [Watch the demo video](REPLACE_WITH_YOUR_VIDEO_LINK)**
+
+<!-- Replace REPLACE_WITH_YOUR_VIDEO_LINK above with your video URL
+     (e.g. a YouTube, Loom, or Google Drive link). -->
+
 ## How it works
 
 ```text
