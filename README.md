@@ -8,6 +8,36 @@ Unlike a generic "paste your stack trace" chatbot, CrashFix AI reads the real
 file at the crashing line (and any related layouts/manifest it asks for) before
 answering.
 
+## 🧩 The Problem
+
+Debugging an Android crash is tedious detective work. A stack trace tells you
+*where* it broke, but to understand *why* you have to switch to your IDE, find
+the exact file and line, read the surrounding code, and often chase into layouts
+or related classes. It breaks your flow — and it's nearly impossible to do from
+your phone when a crash report lands while you're away from your desk.
+
+**CrashFix AI closes that gap.** Paste a crash into Telegram and an AI agent does
+the detective work for you — it opens the *actual* source on GitHub, reads the
+code around the crash, pulls in any extra files it needs, and comes back with a
+root cause and a ready-to-apply fix. All from a chat message.
+
+## ✨ Key Features
+
+- 🔎 **Reads your real code, not guesses** — inspects the actual source on GitHub
+  at the crashing line via the REST API (no cloning needed).
+- 🤖 **Agentic, not one-shot** — the LLM can call `read_additional_file` to pull
+  in layouts, the manifest, or related classes before deciding, in a real
+  tool-calling loop.
+- 📱 **Android-specialized** — tuned to catch the crashes that actually happen:
+  lifecycle leaks, ViewBinding misuse, coroutine scope bugs, and null-safety.
+- 🎯 **Smart stack-trace parsing** — filters out framework noise
+  (`android.*`, `androidx.*`, `java.*`, …) to pinpoint *your* code.
+- 💬 **Works from anywhere** — plain Telegram, accepts pasted traces or
+  `.txt`/`.log` uploads.
+- 🔒 **Admin-only access control** — an allowlist stops strangers from using your
+  bot or burning your API quota.
+- 🆓 **Runs on a free LLM** — uses GitHub Models (free) with a single token.
+
 ## 🎥 Demo
 
 Watch CrashFix AI in action:
@@ -44,6 +74,15 @@ Root Cause + Bug Location + Code Fix (diff)  ──▶  back to Telegram
 | `github_tools.py` | `GitHubInvestigator` — find a file's path (Tree API), fetch numbered source snippets and supplementary files (Contents API). |
 | `agent.py` | `CrashFixAgent` — Android-specialized prompt, tool-calling loop for `read_additional_file`, returns Markdown (root cause / location / diff). |
 | `main.py` | Telegram bot: commands, message/document handlers, status updates, response splitting, provider wiring. |
+
+## 🛠️ Tech Stack
+
+- **Language:** Python 3.10+ (async)
+- **Bot framework:** [python-telegram-bot](https://python-telegram-bot.org/) v20+
+- **LLM:** GitHub Models (`gpt-4o-mini`) via the OpenAI-compatible SDK, with
+  function/tool calling
+- **Source access:** GitHub REST API (Git Trees + Contents) over `httpx`
+- **Config:** `python-dotenv`
 
 ## Requirements
 
@@ -138,8 +177,6 @@ diagnoses the lifecycle/attachment bug.
 - Access is **restricted to `TELEGRAM_ADMIN_IDS`** — only listed users can use
   the bot (see "Access control" above).
 - Keep `.env` out of version control (already in `.gitignore`).
-- `parser.py` shadows a same-named (removed) standard-library module locally —
-  this is intentional and harmless; tooling may flag it as "deprecated module".
 
 ## Troubleshooting
 
@@ -151,3 +188,7 @@ diagnoses the lifecycle/attachment bug.
   `AI_MODEL` for your chosen provider.
 - **File not found in repo** — the branch may be wrong, or the file genuinely
   isn't in that repo/branch.
+
+## 📄 License
+
+Released under the [MIT License](LICENSE).
