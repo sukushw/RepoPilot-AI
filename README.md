@@ -14,6 +14,7 @@ module inside RepoPilot.
 Everything runs on your laptop: Telegram **long polling**, **SQLite**, local git
 clones. No cloud, no server, no Kubernetes. Internet is only needed to reach
 Telegram, GitHub, and the AI agents.
+https://github.com/user-attachments/assets/2dd99e5a-b9fe-4965-9a03-41a9f61cfe8b
 
 ```
 python -m app.bot
@@ -132,11 +133,6 @@ python -m app.dashboard      # optional: http://127.0.0.1:8765
 5. `/test` → runs the project's tests and returns a readable report.
 
 Full script: [`docs/DEMO.md`](docs/DEMO.md).
-
-
-https://github.com/user-attachments/assets/2dd99e5a-b9fe-4965-9a03-41a9f61cfe8b
-
-
 
 ## ✅ Testing
 
