@@ -1,4 +1,15 @@
-python-telegram-bot>=20.0
-openai>=1.0.0
-httpx>=0.25.0
-python-dotenv>=1.0.0
+# RepoPilot AI — runtime dependencies
+python-telegram-bot>=20.0     # Telegram bot (long polling)
+openai>=1.0.0                 # OpenAI-compatible client (GitHub Models for crash/LLM)
+httpx>=0.25.0                # async GitHub REST calls
+python-dotenv>=1.0.0        # .env loading
+SQLAlchemy>=2.0             # SQLite persistence (repos, tasks, user state)
+pydantic>=2.0             # typed settings & models
+
+# Dev / testing
+pytest>=7.0
+
+# Notes:
+# - Git operations use the local `git` CLI (no GitPython needed).
+# - Coding agents use the `claude` and/or `codex` CLIs (installed separately).
+# - Docker isolation is optional; falls back to local execution if absent.

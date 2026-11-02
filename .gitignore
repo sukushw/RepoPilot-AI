@@ -4,4 +4,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 workspace/
+repopilot.db
+*.db
 .DS_Store

@@ -19,8 +19,8 @@ from typing import List, Optional
 
 from openai import AsyncOpenAI
 
-from github_tools import GitHubInvestigator
-from parser import ParsedCrash
+from app.integrations.github.rest import GitHubInvestigator
+from app.modules.crashfix.parser import ParsedCrash
 
 # How many rounds of tool calls we allow before forcing a final answer. This
 # prevents an accidental infinite loop if the model keeps asking for files.

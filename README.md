@@ -1,194 +1,169 @@
-# CrashFix AI — Android Crash Debugging Agent (Telegram)
+# RepoPilot AI
 
-Send an Android crash report to a Telegram bot, point it at your GitHub
-repository, and an AI agent inspects the **actual source code on GitHub**,
-diagnoses the root cause, and replies with a code-fix diff.
+> **Your AI Software Engineer, accessible through Telegram.**
 
-Unlike a generic "paste your stack trace" chatbot, CrashFix AI reads the real
-file at the crashing line (and any related layouts/manifest it asks for) before
-answering.
+RepoPilot AI is a **local-first** AI developer assistant you drive from Telegram.
+Connect a GitHub repository, send an instruction in plain language (or a slash
+command), and RepoPilot delegates the work to an AI coding agent — it reads your
+source, analyzes bugs, modifies files, runs tests/builds, and opens a pull
+request. **You approve every code change before anything is committed or pushed.**
 
-## 🧩 The Problem
+The original **CrashFix AI** lives on as a specialized Android crash-debugging
+module inside RepoPilot.
 
-Debugging an Android crash is tedious detective work. A stack trace tells you
-*where* it broke, but to understand *why* you have to switch to your IDE, find
-the exact file and line, read the surrounding code, and often chase into layouts
-or related classes. It breaks your flow — and it's nearly impossible to do from
-your phone when a crash report lands while you're away from your desk.
+Everything runs on your laptop: Telegram **long polling**, **SQLite**, local git
+clones. No cloud, no server, no Kubernetes. Internet is only needed to reach
+Telegram, GitHub, and the AI agents.
 
-**CrashFix AI closes that gap.** Paste a crash into Telegram and an AI agent does
-the detective work for you — it opens the *actual* source on GitHub, reads the
-code around the crash, pulls in any extra files it needs, and comes back with a
-root cause and a ready-to-apply fix. All from a chat message.
-
-## ✨ Key Features
-
-- 🔎 **Reads your real code, not guesses** — inspects the actual source on GitHub
-  at the crashing line via the REST API (no cloning needed).
-- 🤖 **Agentic, not one-shot** — the LLM can call `read_additional_file` to pull
-  in layouts, the manifest, or related classes before deciding, in a real
-  tool-calling loop.
-- 📱 **Android-specialized** — tuned to catch the crashes that actually happen:
-  lifecycle leaks, ViewBinding misuse, coroutine scope bugs, and null-safety.
-- 🎯 **Smart stack-trace parsing** — filters out framework noise
-  (`android.*`, `androidx.*`, `java.*`, …) to pinpoint *your* code.
-- 💬 **Works from anywhere** — plain Telegram, accepts pasted traces or
-  `.txt`/`.log` uploads.
-- 🔒 **Admin-only access control** — an allowlist stops strangers from using your
-  bot or burning your API quota.
-- 🆓 **Runs on a free LLM** — uses GitHub Models (free) with a single token.
-
-## 🎥 Demo
-
-Watch CrashFix AI in action:
-
-**▶️ [Watch the demo video](REPLACE_WITH_YOUR_VIDEO_LINK)**
-
-<!-- Replace REPLACE_WITH_YOUR_VIDEO_LINK above with your video URL
-     (e.g. a YouTube, Loom, or Google Drive link). -->
-
-## How it works
-
-```text
-Telegram user
-   │  /repo owner/repo [branch]   +   crash trace (text or .txt/.log file)
-   ▼
-main.py  (python-telegram-bot)
-   │
-   ├─ parser.py          parse the stack trace, find the topmost APP frame
-   │
-   ├─ github_tools.py    locate the file via GitHub Tree API,
-   │                     fetch the source around the crash line
-   │
-   └─ agent.py           LLM diagnoses the root cause & writes a fix diff;
-                         may call read_additional_file for layouts/manifest
-   ▼
-Root Cause + Bug Location + Code Fix (diff)  ──▶  back to Telegram
+```
+python -m app.bot
 ```
 
-## Files
+---
 
-| File | Responsibility |
-|------|----------------|
-| `parser.py` | Parse Android/Java/Kotlin stack traces; separate framework frames from app frames; pick the crash target frame. |
-| `github_tools.py` | `GitHubInvestigator` — find a file's path (Tree API), fetch numbered source snippets and supplementary files (Contents API). |
-| `agent.py` | `CrashFixAgent` — Android-specialized prompt, tool-calling loop for `read_additional_file`, returns Markdown (root cause / location / diff). |
-| `main.py` | Telegram bot: commands, message/document handlers, status updates, response splitting, provider wiring. |
+## ✨ What it does
 
-## 🛠️ Tech Stack
+| Area | Capabilities |
+|------|--------------|
+| **Repositories** | Connect public/private GitHub repos, list, switch, disconnect. Clones locally on demand. |
+| **Coding** | `/ask`, `/explain`, `/analyze` (read-only) · `/bugfix`, `/refactor`, `/generate` (edit → **approval** → PR). |
+| **Code review** | `/review` — findings grouped by severity (Critical → Informational) with file/line references. |
+| **Android** | `/crash` crash diagnosis from a real stack trace; `/android`, `/gradle`, `/build`. |
+| **Testing/Build** | `/test`, `/testreport`, Gradle/Python/Node detection, failure capture. |
+| **Git** | `/diff`, `/branch`, `/commit`, `/pr` — protected branches are never touched. |
+| **Tasks** | `/tasks`, `/task`, `/cancel`, `/approve`, `/reject` — persisted in SQLite, run in the background. |
+| **Agents** | `/agents` (availability), `/agent <name>` — pluggable Claude Code / Codex adapters. |
+| **Natural language** | Just type: _"analyze my repo for performance issues"_ or _"fix the crash in HomeFragment"_. |
+| **Dashboard** (optional) | `python -m app.dashboard` — local read-only web view of repos & tasks. |
 
-- **Language:** Python 3.10+ (async)
-- **Bot framework:** [python-telegram-bot](https://python-telegram-bot.org/) v20+
-- **LLM:** GitHub Models (`gpt-4o-mini`) via the OpenAI-compatible SDK, with
-  function/tool calling
-- **Source access:** GitHub REST API (Git Trees + Contents) over `httpx`
-- **Config:** `python-dotenv`
+## 🔒 Safety model
 
-## Requirements
+- **Human-in-the-loop:** code modifications apply to a feature branch in an
+  isolated clone, you see the **git diff**, and nothing is committed/pushed/PR'd
+  until you `/approve`.
+- **Protected branches** (`main`, `master`, `production`, …) are never pushed to.
+- **Allowlist:** only Telegram IDs in `TELEGRAM_ADMIN_IDS` may use the bot.
+- **Secrets** are redacted from Telegram replies and logs; tokens are never
+  stored in git remotes on disk.
+- **Untrusted repo content:** build/test commands run in **Docker** when enabled
+  (`USE_DOCKER=true`), otherwise locally with a hard timeout (clearly less
+  isolated — see Limitations).
 
-- Python 3.10+
-- A Telegram bot token from [@BotFather](https://t.me/BotFather)
-- A GitHub Personal Access Token (`GITHUB_TOKEN`) with read access to the repo
-- A free LLM endpoint — **GitHub Models** (uses `GITHUB_TOKEN`)
+## 🏛️ Architecture
 
-## Setup
+Clean, layered, provider-agnostic. Telegram handlers are thin; all logic is in
+services.
+
+```
+app/
+├── bot/            Telegram presentation (handlers/, application.py, __main__.py)
+├── core/           config, security, logging
+├── agents/         CodingAgent abstraction + ClaudeCodeAgent, CodexAgent, manager
+├── services/       task, repository, coding, code_review, crash_analysis, build, nlu
+├── integrations/   github/ (rest, api, git_cli) · telegram/ (formatting)
+├── modules/        crashfix/ (parser, agent) · code_review/ · testing/
+├── database/       models, db, repository (DAO)
+├── execution/      workspace, docker_runner
+└── dashboard/      optional local web UI
+tests/              pytest suite (no network/token needed)
+```
+
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the layer map and
+[`docs/DEMO.md`](docs/DEMO.md) for the end-to-end demo script.
+
+## 🛠️ Tech stack
+
+- **Python 3.10+** (runs on 3.9 too), async throughout
+- **python-telegram-bot** v20+ (long polling)
+- **SQLAlchemy 2** + **SQLite**, **Pydantic 2** settings
+- **git CLI** (subprocess) for clone/branch/diff/commit/push
+- **GitHub REST API** (httpx) for metadata + pull requests
+- **Claude Code CLI** / **OpenAI Codex CLI** as coding agents (pluggable)
+- **GitHub Models** (free, OpenAI-compatible) for crash analysis & reasoning
+
+## 🚀 Setup
 
 ```bash
 python -m venv .venv
-
-# macOS/Linux
-source .venv/bin/activate
-# Windows PowerShell
-# .venv\Scripts\Activate.ps1
-
+source .venv/bin/activate            # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.example .env
+cp .env.example .env                  # then edit .env
 ```
 
-Then edit `.env`:
+Fill in `.env` (see the file for full comments):
 
 ```env
-TELEGRAM_BOT_TOKEN=your_telegram_token
-TELEGRAM_ADMIN_IDS=123456789
-GITHUB_TOKEN=ghp_your_token
+TELEGRAM_BOT_TOKEN=...               # from @BotFather
+TELEGRAM_ADMIN_IDS=123456789         # your numeric Telegram ID
+GITHUB_TOKEN=ghp_...                 # read for public; `repo` (write) for PRs
 AI_BASE_URL=https://models.inference.ai.azure.com
 AI_MODEL=gpt-4o-mini
+DEFAULT_AGENT=claude
 ```
 
-> **Note:** `GITHUB_TOKEN` does double duty — it authenticates the GitHub API
-> calls that read your source code *and* serves as the LLM key for GitHub
-> Models. One token is all you need.
+### Coding agent setup
 
-### Access control (admin only)
+RepoPilot shells out to a coding-agent CLI. Install and authenticate at least one:
 
-The bot only responds to the Telegram user IDs listed in
-`TELEGRAM_ADMIN_IDS` (comma-separated). Everyone else is denied — this prevents
-strangers from using your token quota or inspecting repos.
+- **Claude Code**: install the `claude` CLI and sign in. Check with `claude --version`.
+- **Codex** *(optional)*: install the `codex` CLI and authenticate.
 
-**Finding your ID:** leave `TELEGRAM_ADMIN_IDS` blank the first time, start the
-bot, and message it — it replies with your numeric ID. Paste that into
-`TELEGRAM_ADMIN_IDS`, restart, and you're the only one who can use it. Add more
-IDs separated by commas to authorize additional people.
+Run `/agents` in Telegram to see live availability. A missing/unauthenticated
+agent produces a clear setup message rather than a failure.
 
-## Run
+> **Finding your Telegram ID:** leave `TELEGRAM_ADMIN_IDS` blank, start the bot,
+> message it — it replies with your numeric ID. Paste it in and restart.
+
+## ▶️ Run
 
 ```bash
-python main.py
+python -m app.bot            # the Telegram bot
+python -m app.dashboard      # optional: http://127.0.0.1:8765
 ```
 
-Then, in Telegram:
+## 🎬 Demo flow
 
-1. `/start` — see the welcome and instructions.
-2. `/repo owner/repo [branch]` — connect a repository (branch defaults to `main`).
-   e.g. `/repo octocat/MyApp main`
-3. Send the crash — paste the stack trace as a message, **or** upload a `.txt` /
-   `.log` file.
-4. The bot replies with **Root Cause**, **Bug Location**, and a **Code Fix** diff.
+1. `/connect your/android-repo`
+2. Paste an Android crash trace → evidence-based diagnosis (root cause + fix diff).
+3. `/bugfix fix the null pointer in HomeFragment` → RepoPilot edits a branch and
+   shows you the **git diff**.
+4. `/approve` → it commits, pushes the branch, and opens a **pull request**; the
+   PR link comes back in Telegram.
+5. `/test` → runs the project's tests and returns a readable report.
 
-## Example crash trace
+Full script: [`docs/DEMO.md`](docs/DEMO.md).
 
-```text
-FATAL EXCEPTION: main
-Process: com.example.app, PID: 1234
-java.lang.IllegalStateException: Fragment HomeFragment not attached to a context.
-    at androidx.fragment.app.Fragment.requireContext(Fragment.java:1000)
-    at com.example.app.ui.HomeFragment.onResume(HomeFragment.kt:42)
+## ✅ Testing
+
+```bash
+python -m pytest -q
 ```
 
-CrashFix AI skips the `androidx` framework frame, identifies
-`HomeFragment.kt:42` as the crash site, reads that file from GitHub, and
-diagnoses the lifecycle/attachment bug.
+The suite is hermetic — no token, network, or CLI required (it covers the parser,
+security/validation, intent routing, task & repository persistence, agent-manager
+availability, build-system detection, and full command registration).
 
-## Commands
+## ⚠️ Limitations (honest status)
 
-| Command | Description |
-|---------|-------------|
-| `/start` | Welcome message and usage. |
-| `/help` | Show available commands. |
-| `/repo owner/repo [branch]` | Connect a GitHub repository. |
-
-(Just send or upload a crash trace after connecting a repo.)
-
-## Notes & limitations
-
-- Repo selection is stored **in memory** per user — it resets when the bot
-  restarts. (Swap in SQLite for persistence.)
-- The agent **analyzes and proposes** a fix; it does not commit or open PRs.
-- Access is **restricted to `TELEGRAM_ADMIN_IDS`** — only listed users can use
-  the bot (see "Access control" above).
-- Keep `.env` out of version control (already in `.gitignore`).
-
-## Troubleshooting
-
-- **Bot doesn't respond** — check `TELEGRAM_BOT_TOKEN` and that only one process
-  is polling.
-- **"Couldn't read the repository tree"** — verify the `owner/repo`, the branch,
-  and that `GITHUB_TOKEN` can access the repo.
-- **"Analysis failed"** — check `AI_BASE_URL`, the matching API key, and
-  `AI_MODEL` for your chosen provider.
-- **File not found in repo** — the branch may be wrong, or the file genuinely
-  isn't in that repo/branch.
+- **CLI agents must be installed & authenticated** by you (`claude`/`codex`).
+  RepoPilot invokes them; it doesn't bundle credentials.
+- **PRs require a write-scoped `GITHUB_TOKEN`** (`repo`). Read-only tokens can do
+  crash analysis and read-only coding, but `/approve` (push + PR) will 403.
+- **Isolation is reduced without Docker.** With `USE_DOCKER=false` (the default on
+  a plain laptop), build/test commands run locally with a timeout but no sandbox.
+  Set `USE_DOCKER=true` with Docker installed for real isolation of untrusted
+  repo code.
+- Agent CLIs evolve; adapters target the verified current interfaces
+  (`claude -p --output-format json --permission-mode …`, `codex exec …`). The
+  Claude adapter's JSON contract and non-interactive edit behavior are verified
+  against the installed CLI.
+- **Cancelling a running task** interrupts RepoPilot's `await`, but a coding-agent
+  or git subprocess already spawned may keep running to completion in the
+  background. Fine for a local demo; noted for honesty.
+- **One change at a time per repo:** approve or reject a pending change before
+  starting another write task on the same repo (the second would branch from a
+  dirty working tree). The primary flow (one task → approve) is unaffected.
 
 ## 📄 License
 
-Released under the [MIT License](LICENSE).
+MIT — see [LICENSE](LICENSE).
