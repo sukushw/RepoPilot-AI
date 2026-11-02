@@ -133,6 +133,11 @@ python -m app.dashboard      # optional: http://127.0.0.1:8765
 
 Full script: [`docs/DEMO.md`](docs/DEMO.md).
 
+
+https://github.com/user-attachments/assets/2dd99e5a-b9fe-4965-9a03-41a9f61cfe8b
+
+
+
 ## ✅ Testing
 
 ```bash
