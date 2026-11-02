@@ -14,6 +14,8 @@ module inside RepoPilot.
 Everything runs on your laptop: Telegram **long polling**, **SQLite**, local git
 clones. No cloud, no server, no Kubernetes. Internet is only needed to reach
 Telegram, GitHub, and the AI agents.
+
+
 https://github.com/user-attachments/assets/2dd99e5a-b9fe-4965-9a03-41a9f61cfe8b
 
 ```
