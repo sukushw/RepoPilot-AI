@@ -8,8 +8,7 @@ command), and RepoPilot delegates the work to an AI coding agent — it reads yo
 source, analyzes bugs, modifies files, runs tests/builds, and opens a pull
 request. **You approve every code change before anything is committed or pushed.**
 
-The original **CrashFix AI** lives on as a specialized Android crash-debugging
-module inside RepoPilot.
+
 
 Everything runs on your laptop: Telegram **long polling**, **SQLite**, local git
 clones. No cloud, no server, no Kubernetes. Internet is only needed to reach
