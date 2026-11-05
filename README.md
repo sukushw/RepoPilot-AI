@@ -1,12 +1,14 @@
 # RepoPilot AI
 
-> **Your AI Software Engineer, accessible through Telegram.**
+> **Your AI software engineer, in Telegram.**
 
-RepoPilot AI is a AI developer assistant you drive from Telegram.
-Connect a GitHub repository, send an instruction in plain language (or a slash
-command), and RepoPilot delegates the work to an AI coding agent — it reads your
-source, analyzes bugs, modifies files, runs tests/builds, and opens a pull
-request. **You approve every code change before anything is committed or pushed.**
+RepoPilot AI lets you manage your codebase from Telegram. Connect a GitHub
+repository, then send an instruction in plain language or a slash command.
+RepoPilot hands the task to a coding agent that reads your source, diagnoses
+bugs, edits files, and runs tests and builds.
+
+You review the diff in chat, and **nothing is committed or pushed until you
+approve it.** Once approved, RepoPilot opens a pull request.
 
 
 https://github.com/user-attachments/assets/2dd99e5a-b9fe-4965-9a03-41a9f61cfe8b
